@@ -1,0 +1,397 @@
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = off;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET escape_string_warning = off;
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: comments; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE comments (
+    cid SERIAL NOT NULL,
+    pid integer NOT NULL,
+    uid integer,
+    sid integer NOT NULL,
+    subject character varying(64) NOT NULL,
+    "comment" text NOT NULL,
+    "timestamp" integer NOT NULL,
+    name character varying(60),
+    mail character varying(64)
+);
+
+
+ALTER TABLE public.comments OWNER TO crdbuser;
+
+--
+-- Name: news_item; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE news_item (
+    nid SERIAL NOT NULL,
+    heading character varying(255) NOT NULL,
+    uid integer NOT NULL,
+    body text NOT NULL,
+    created integer NOT NULL
+);
+
+
+ALTER TABLE public.news_item OWNER TO crdbuser;
+
+--
+-- Name: poll; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE poll (
+    pid SERIAL NOT NULL,
+    subject character varying(255) NOT NULL,
+    runtime integer NOT NULL,
+    active integer NOT NULL
+);
+
+
+ALTER TABLE public.poll OWNER TO crdbuser;
+
+--
+-- Name: poll_choices; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE poll_choices (
+    chid SERIAL NOT NULL,
+    pid integer,
+    chtext character varying(128),
+    chvotes integer NOT NULL,
+    chorder integer NOT NULL
+);
+
+
+ALTER TABLE public.poll_choices OWNER TO crdbuser;
+
+--
+-- Name: poll_votes; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE poll_votes (
+    pid integer NOT NULL,
+    uid integer NOT NULL,
+    chorder int NOT NULL
+);
+
+
+ALTER TABLE public.poll_votes OWNER TO crdbuser;
+
+--
+-- Name: profile; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE profile (
+    uid integer NOT NULL,
+    fname character varying(60) NOT NULL,
+    lname character varying(60),
+    gender boolean,
+    about text,
+    phone character varying(20),
+    fbprofile character varying(255)
+);
+
+
+ALTER TABLE public.profile OWNER TO crdbuser;
+
+--
+-- Name: role; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE role (
+    rid SERIAL NOT NULL,
+    name character varying(64) NOT NULL
+);
+
+
+ALTER TABLE public.role OWNER TO crdbuser;
+
+--
+-- Name: permission; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE permission (
+    pid SERIAL NOT NULL,
+    rid integer NOT NULL,
+    perm text
+);
+
+
+ALTER TABLE public.permission OWNER TO crdbuser;
+
+--
+-- Name: show; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE show (
+    sid SERIAL NOT NULL,
+    title character varying(255) NOT NULL,
+    ttime integer NOT NULL,
+    duration integer,
+    description text,
+    file character varying(255)
+);
+
+
+ALTER TABLE public.show OWNER TO crdbuser;
+
+--
+-- Name: show_rjs; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE show_rjs (
+    sid integer NOT NULL,
+    uid integer NOT NULL
+);
+
+
+ALTER TABLE public.show_rjs OWNER TO crdbuser;
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE users (
+    uid SERIAL NOT NULL,
+    name character varying(60) NOT NULL,
+    pass character varying(32) NOT NULL,
+    mail character varying(64),
+    created integer NOT NULL,
+    access integer NOT NULL
+);
+
+
+ALTER TABLE public.users OWNER TO crdbuser;
+
+--
+-- Name: users_roles; Type: TABLE; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+CREATE TABLE users_roles (
+    uid integer NOT NULL,
+    rid integer NOT NULL
+);
+
+
+ALTER TABLE public.users_roles OWNER TO crdbuser;
+
+
+--
+-- Name: comments_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY comments
+    ADD CONSTRAINT comments_pkey PRIMARY KEY (cid);
+
+
+--
+-- Name: news_item_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY news_item
+    ADD CONSTRAINT news_item_pkey PRIMARY KEY (nid);
+
+
+--
+-- Name: poll_choices_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY poll_choices
+    ADD CONSTRAINT poll_choices_pkey PRIMARY KEY (chid);
+
+
+--
+-- Name: poll_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY poll
+    ADD CONSTRAINT poll_pkey PRIMARY KEY (pid);
+
+
+--
+-- Name: poll_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY poll_votes
+    ADD CONSTRAINT poll_votes_pkey PRIMARY KEY (pid, uid);
+
+
+--
+-- Name: profile_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY profile
+    ADD CONSTRAINT profile_pkey PRIMARY KEY (uid);
+
+
+--
+-- Name: permission_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY permission
+    ADD CONSTRAINT permission_pkey PRIMARY KEY (pid);
+
+
+--
+-- Name: role_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY role
+    ADD CONSTRAINT role_pkey PRIMARY KEY (rid);
+
+
+--
+-- Name: show_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY show
+    ADD CONSTRAINT show_pkey PRIMARY KEY (sid);
+
+
+--
+-- Name: show_rjs_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY show_rjs
+    ADD CONSTRAINT show_rjs_pkey PRIMARY KEY (sid, uid);
+
+
+--
+-- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (uid);
+
+
+--
+-- Name: users_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: crdbuser; Tablespace: 
+--
+
+ALTER TABLE ONLY users_roles
+    ADD CONSTRAINT users_roles_pkey PRIMARY KEY (uid, rid);
+
+--
+-- Name: comments_sid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY comments
+    ADD CONSTRAINT comments_sid_fkey FOREIGN KEY (sid) REFERENCES show(sid);
+
+
+--
+-- Name: comments_uid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY comments
+    ADD CONSTRAINT comments_uid_fkey FOREIGN KEY (uid) REFERENCES users(uid);
+
+
+--
+-- Name: news_item_uid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY news_item
+    ADD CONSTRAINT news_item_uid_fkey FOREIGN KEY (uid) REFERENCES users(uid);
+
+
+--
+-- Name: poll_choices_pid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY poll_choices
+    ADD CONSTRAINT poll_choices_pid_fkey FOREIGN KEY (pid) REFERENCES poll(pid);
+
+
+--
+-- Name: poll_votes_pid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY poll_votes
+    ADD CONSTRAINT poll_votes_pid_fkey FOREIGN KEY (pid) REFERENCES poll(pid);
+
+
+--
+-- Name: poll_votes_uid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY poll_votes
+    ADD CONSTRAINT poll_votes_uid_fkey FOREIGN KEY (uid) REFERENCES users(uid);
+
+
+--
+-- Name: profile_uid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY profile
+    ADD CONSTRAINT profile_uid_fkey FOREIGN KEY (uid) REFERENCES users(uid);
+
+
+--
+-- Name: permission_rid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY permission
+    ADD CONSTRAINT permission_rid_fkey FOREIGN KEY (rid) REFERENCES role(rid);
+
+
+--
+-- Name: show_rjs_sid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY show_rjs
+    ADD CONSTRAINT show_rjs_sid_fkey FOREIGN KEY (sid) REFERENCES show(sid);
+
+
+--
+-- Name: show_rjs_uid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY show_rjs
+    ADD CONSTRAINT show_rjs_uid_fkey FOREIGN KEY (uid) REFERENCES users(uid);
+
+
+--
+-- Name: users_roles_rid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY users_roles
+    ADD CONSTRAINT users_roles_rid_fkey FOREIGN KEY (rid) REFERENCES role(rid);
+
+
+--
+-- Name: users_roles_uid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: crdbuser
+--
+
+ALTER TABLE ONLY users_roles
+    ADD CONSTRAINT users_roles_uid_fkey FOREIGN KEY (uid) REFERENCES users(uid);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+

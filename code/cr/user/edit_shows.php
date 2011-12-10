@@ -1,0 +1,220 @@
+<?php 
+
+$username = require_once('header.php'); 
+
+print start_page('Shows Management');
+
+if( !( has_role('manager') || has_role('admin') ) ) {
+	echo <<<EOQ
+Access Denied!<br />
+EOQ;
+
+header('Refresh: 5;URL=index.php');
+echo("\n\nRedirecting...");
+echo end_page();
+}
+
+else {
+$submit = (string)array_key_value($_POST,'submit','');
+$title = cleanup_text((string)array_key_value($_POST,'title',''));
+$ttime = array_key_value($_POST,'ttime','');
+$description = cleanup_text((string)array_key_value($_POST,'description',''));
+$sid = (int)array_key_value($_REQUEST,'sid',0);
+
+if ($submit == 'Save')
+{
+	// update existing question or create new one
+
+	$pgsql_title = pg_escape_string($title);
+	$pgsql_ttime = $ttime;
+	$pgsql_description = pg_escape_string($description);
+	$pgsql_file = '';
+	$invfile = 0;
+	
+	if (($_FILES["upload"]["type"] == "audio/mp3") && ($_FILES["upload"]["size"] < 100000000))
+	{
+  		if ($_FILES["upload"]["error"] > 0)
+    		{
+    			echo "Return Code: " . $_FILES["upload"]["error"] . "<br />";
+    		}
+  		else
+    	{
+    		echo "Upload: " . $_FILES["upload"]["name"] . "<br />";
+    		echo "Type: " . $_FILES["upload"]["type"] . "<br />";
+    		echo "Size: " . ($_FILES["upload"]["size"] / 1024) . " KB<br />";
+    		echo "Temp file: " . $_FILES["upload"]["tmp_name"] . "<br />";
+
+    		if (file_exists("archive/" . $_FILES["upload"]["name"]))
+      		{
+      			echo $_FILES["upload"]["name"] . " already exists. ";
+      		}
+    		else
+      		{
+      			move_uploaded_file($_FILES["upload"]["tmp_name"],
+      			dirname(__FILE__) . "/../archive/" . $_FILES["upload"]["name"]);
+
+      			echo "Stored in: " . "archive/" . $_FILES["upload"]["name"];
+				$pgsql_file =  "archive/" . $_FILES["upload"]["name"];
+				$invfile = 0;
+    		}
+    	}
+  	}
+	else
+  	{
+  		$invfile = 1;
+		if(!$sid) print subtitle("Invalid file!");
+  	}
+   //var_dump($sid);
+	if(!(empty($pgsql_title)) && $invfile==0)
+	{
+		//var_dump($sid);
+		if (!$sid)
+		{
+		$query = "insert into show (title, ttime, description, file)
+					 values ('$pgsql_title', '$pgsql_ttime', '$pgsql_description', '$pgsql_file') RETURNING sid";
+		$result = pgsql_query($query);
+		$insert_row = pg_fetch_row($result);
+		$sid = $insert_row[0];
+		}
+		else
+		{
+		// if we do have a value in $sid, that means a record 
+		// for this question already exists in the database.
+		// update it.
+		$query = "update show set (title, ttime, description) =
+		 ('$pgsql_title', '$pgsql_ttime', '$pgsql_description') 
+			where sid = $sid
+		";
+		$result = pgsql_query($query);
+		}
+		print subtitle("Show saved!");
+		print "<hr>\n";
+	}
+	elseif(empty($pgsql_title)) {
+		print subtitle("Show title can't be empty!");
+		print "<hr>\n";
+	}
+	elseif($invfile == 1) {
+		print "<hr>\n";
+	}
+	
+}
+elseif ($submit == 'Delete Show')
+{
+	// make administrator confirm the deletion.
+	print paragraph(
+		start_form(array('action'=>'edit_shows.php'))
+		, "Delete show $sid - '$title'?<br>"
+		, hidden_field(array('name'=>'sid', 'value'=>$sid))
+		, submit_field(array('name'=>'submit', 'value'=>'Yes, sure!'))
+		, submit_field(array('name'=>'submit', 'value'=>'Whoops, no!'))
+		, end_form()
+	);
+	print end_page();
+	exit;
+}
+elseif ($submit == 'Yes, sure!')
+{
+
+	pgsql_query('delete from show where sid = '.$sid);
+
+	print subtitle("Deleted show {$sid}!");
+	print "<hr>\n";
+}
+
+	// as the ID of a user is passed in, retrieve its information
+	// from the database for editing.
+	
+if (!empty($submit)) { $sid = ''; }
+
+if (empty($sid))
+{
+	// if no particular question is identified, print out a list of 
+	// existing questions as links back to this page for editing.
+
+	$sid = '';
+	print subtitle('List of Shows');
+	$result = pgsql_query('select sid, title from show');
+	$lines = array();
+	while (list($sid,$title) = pg_fetch_row($result))
+	{
+		$lines[] = anchor_tag('edit_shows.php?sid='.$sid,$title).'<br>';
+	}
+	pg_free_result($result);
+	print paragraph($lines);
+
+	// set the $question variable to an empty string, since the
+	// form should be empty for creating a new question. ($question
+	// would have a value if we had saved or deleted a question
+	// above.)
+	$title = '';
+	$ttime = '';
+	$description = '';
+
+	// set the form title to indicate the action the user can perform
+	$sform_title = 'Add A Show';
+}
+else 
+{
+	// if the ID of a question is passed in, retrieve its information
+	// from the database for editing.
+	extract(fetch_show($sid));
+
+	// set the form title to indicate the action the user can perform
+	$sform_title = 'Edit A Show : #'.$sid;
+}
+
+print subtitle($sform_title);
+
+print start_form('edit_shows.php', array('enctype'=>'multipart/form-data'));
+
+print paragraph(
+ 'Title: *'
+ , text_field(array(
+    'name'=>'title','value'=>$title,'size'=>20
+ ))
+ ); print paragraph(
+ '<br />Telecast Time: *'
+ , text_field(array(
+    'name'=>'ttime','value'=>$ttime,'size'=>20, 'class'=>'hasDatepicker'
+ ))
+ ); print paragraph(
+ '<br />Description:'
+ , textarea_field(array(
+    'name'=>'description','value'=>$description
+ ))
+ );  
+$upload = <<<EOQ
+<br />Upload show file:
+ <input type="file" name="upload" />
+EOQ;
+ print paragraph($upload
+ , hidden_field(array(
+    'name'=>'sid', 'value'=>$sid
+ )));
+
+if (empty($sid))
+{
+	$delete_button = '';
+}
+else
+{
+	$delete_button = submit_field('Delete Show');
+}
+
+print paragraph(
+	submit_field('Save')
+	, $delete_button
+);
+
+if (!empty($sid))
+{
+	print paragraph(
+		anchor_tag('edit_shows.php', 'Return to Shows List')
+	);
+}
+echo end_form(), end_page();
+
+}
+
+?>

@@ -1,0 +1,9 @@
+<html>
+<?php
+if (isset($head) && is_string($head)) { print $head; }
+print "\n";
+if (isset($body) && is_string($body)) { print $body; }
+print "\n";
+if (isset($page_header) && is_string($page_header)) { print $page_header; }
+print "\n";
+?>

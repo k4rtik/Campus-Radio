@@ -1,0 +1,34 @@
+<?php
+function start_page()
+{
+	static $_defaults = array(
+		'title' => 'Examples'
+	);
+	static $_simple = array('title');
+	$p = func_get_args();
+	$p = parse_arguments($p, $_simple, $_defaults);
+	extract($p);
+	array_key_remove($p,array('_simple','_defaults'));
+	$head = head_tag($p);
+	array_key_remove($p,'title');
+	$body = body_tag($p);
+	if (!isset($page_header))
+	{
+		$page_header = page_title($title);
+	}
+
+	$output = '';
+	if (!@include('start_page.php'))
+	{
+		$output = <<<EOQ
+<html>
+$head
+$body
+$page_header
+
+EOQ;
+	}
+	return $output;
+}
+
+?>
