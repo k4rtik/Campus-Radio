@@ -1,5 +1,10 @@
 PHP and PostgreSQL based DBMS Course Project done at NIT Calicut.
 
+A portal developed for NIT Calicut's upcoming student-run Campus Radio.
+Representing radio jockeys' profiles, archives of the previous shows
+and providing an easy interface for the content editors of the website
+were the primary objectives.
+
 Instructor: Gopakumar G
 
 Langauges used: PHP, HTML, CSS, PostgreSQL
